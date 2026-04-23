@@ -17,6 +17,13 @@ def main():
     window = glfw.create_window(WIDTH, HEIGHT, "hydrogen atom simulator", None, None)
     glfw.make_context_current(window)
 
+    # enable depth testing so closer objects appear in front
+    glEnable(GL_DEPTH_TEST)
+
+    # enable blending for transparency
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
     # track time between frames
     prev = time.time()
 
