@@ -1,9 +1,20 @@
 import glfw
 from OpenGL.GL import *
+import numpy as np
 import time
 
 # window dimensions
 WIDTH, HEIGHT = 1440, 1080
+
+def perspective(fov_deg, aspect, near, far):
+    # build a perspective projection matrix from scratch
+    f = 1.0 / np.tan(np.radians(fov_deg) / 2)
+    return np.array([
+        [f / aspect, 0,  0,                               0],
+        [0,          f,  0,                               0],
+        [0,          0,  (far + near) / (near - far),    -1],
+        [0,          0,  (2 * far * near) / (near - far), 0],
+    ], dtype=np.float32).T
 
 def main():
     glfw.init()
