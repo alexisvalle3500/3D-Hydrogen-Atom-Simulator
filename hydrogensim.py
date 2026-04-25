@@ -11,6 +11,10 @@ orbit_yaw   = 0.0
 orbit_pitch = 0.0
 orbit_dist  = 14
 
+# camera pan offset
+pan_x = 0.0
+pan_y = 0.0
+
 def perspective(fov_deg, aspect, near, far):
     # build a perspective projection matrix from scratch
     f = 1.0 / np.tan(np.radians(fov_deg) / 2)
