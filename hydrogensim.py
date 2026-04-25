@@ -6,6 +6,11 @@ import time
 # window dimensions
 WIDTH, HEIGHT = 1440, 1080
 
+# camera navigation state
+orbit_yaw   = 0.0
+orbit_pitch = 0.0
+orbit_dist  = 14
+
 def perspective(fov_deg, aspect, near, far):
     # build a perspective projection matrix from scratch
     f = 1.0 / np.tan(np.radians(fov_deg) / 2)
