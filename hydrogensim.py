@@ -25,6 +25,35 @@ def perspective(fov_deg, aspect, near, far):
         [0,          0,  (2 * far * near) / (near - far), 0],
     ], dtype=np.float32).T
 
+def look_at_modelview():
+    # convert degrees to radians
+    yaw   = np.radians(orbit_yaw)
+    pitch = np.radians(orbit_pitch)
+
+    # rotation around y axis
+    Ry = np.array([
+        [ np.cos(yaw), 0, np.sin(yaw), 0],
+        [0,            1, 0,           0],
+        [-np.sin(yaw), 0, np.cos(yaw), 0],
+        [0,            0, 0,           1],
+    ], dtype=np.float32)
+
+    # rotation around x axis
+    Rx = np.array([
+        [1, 0,              0,             0],
+        [0, np.cos(pitch), -np.sin(pitch), 0],
+        [0, np.sin(pitch),  np.cos(pitch), 0],
+        [0, 0,              0,             1],
+    ], dtype=np.float32)
+
+    # translation back by orbit distance and pan
+    T = np.eye(4, dtype=np.float32)
+    T[0, 3] = -pan_x
+    T[1, 3] = -pan_y
+    T[2, 3] = -orbit_dist
+
+    return T @ Rx @ Ry
+
 def main():
     glfw.init()
 
