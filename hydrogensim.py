@@ -1,6 +1,7 @@
 import glfw
 from OpenGL.GL import *
 import numpy as np
+import ctypes
 import time
 
 # window dimensions
@@ -130,6 +131,27 @@ def main():
     # build projection matrix
     proj = perspective(60.0, WIDTH / HEIGHT, 0.01, 1000.0)
 
+    # single white point at the origin: x, y, z, r, g, b
+    point = np.array([[0.0, 0.0, 0.0, 1.0, 1.0, 1.0]], dtype=np.float32)
+
+    vao = glGenVertexArrays(1)
+    vbo = glGenBuffers(1)
+
+    glBindVertexArray(vao)
+    glBindBuffer(GL_ARRAY_BUFFER, vbo)
+    glBufferData(GL_ARRAY_BUFFER, point.nbytes, point, GL_STATIC_DRAW)
+
+    stride = 6 * 4
+    glEnableVertexAttribArray(0)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, None)
+    glEnableVertexAttribArray(1)
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, ctypes.c_void_p(3 * 4))
+
+    glBindVertexArray(0)
+
+    # make the point bigger so we can see it
+    glPointSize(10.0)
+
     # track time between frames
     prev = time.time()
 
@@ -147,6 +169,11 @@ def main():
 
         glUseProgram(prog)
         glUniformMatrix4fv(u_mvp, 1, GL_FALSE, mvp.T.flatten())
+
+        # draw the point
+        glBindVertexArray(vao)
+        glDrawArrays(GL_POINTS, 0, 1)
+        glBindVertexArray(0)
 
         glfw.swap_buffers(window)
         glfw.poll_events()
