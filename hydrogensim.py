@@ -105,6 +105,38 @@ def look_at_modelview():
 
     return T @ Rx @ Ry
 
+def create_grid(size=5, step=1):
+    # build a flat grid of lines on the xz plane
+    lines = []
+    for i in range(-size, size + 1):
+        # lines along z axis
+        lines += [i, 0, -size, 0.2, 0.2, 0.3]
+        lines += [i, 0,  size, 0.2, 0.2, 0.3]
+        # lines along x axis
+        lines += [-size, 0, i, 0.2, 0.2, 0.3]
+        lines += [ size, 0, i, 0.2, 0.2, 0.3]
+
+    data = np.array(lines, dtype=np.float32)
+
+    vao = glGenVertexArrays(1)
+    vbo = glGenBuffers(1)
+
+    glBindVertexArray(vao)
+    glBindBuffer(GL_ARRAY_BUFFER, vbo)
+    glBufferData(GL_ARRAY_BUFFER, data.nbytes, data, GL_STATIC_DRAW)
+
+    stride = 6 * 4
+    glEnableVertexAttribArray(0)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, None)
+    glEnableVertexAttribArray(1)
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, ctypes.c_void_p(3 * 4))
+
+    glBindVertexArray(0)
+
+    # number of vertices is 4 lines per grid line, 2 vertices each
+    count = (size * 2 + 1) * 4
+    return vao, vbo, count
+
 def main():
     glfw.init()
 
@@ -134,11 +166,11 @@ def main():
     # single white point at the origin: x, y, z, r, g, b
     point = np.array([[0.0, 0.0, 0.0, 1.0, 1.0, 1.0]], dtype=np.float32)
 
-    vao = glGenVertexArrays(1)
-    vbo = glGenBuffers(1)
+    vao_point = glGenVertexArrays(1)
+    vbo_point = glGenBuffers(1)
 
-    glBindVertexArray(vao)
-    glBindBuffer(GL_ARRAY_BUFFER, vbo)
+    glBindVertexArray(vao_point)
+    glBindBuffer(GL_ARRAY_BUFFER, vbo_point)
     glBufferData(GL_ARRAY_BUFFER, point.nbytes, point, GL_STATIC_DRAW)
 
     stride = 6 * 4
@@ -151,6 +183,9 @@ def main():
 
     # make the point bigger so we can see it
     glPointSize(10.0)
+
+    # create the grid
+    vao_grid, vbo_grid, grid_count = create_grid()
 
     # track time between frames
     prev = time.time()
@@ -170,8 +205,13 @@ def main():
         glUseProgram(prog)
         glUniformMatrix4fv(u_mvp, 1, GL_FALSE, mvp.T.flatten())
 
+        # draw the grid
+        glBindVertexArray(vao_grid)
+        glDrawArrays(GL_LINES, 0, grid_count)
+        glBindVertexArray(0)
+
         # draw the point
-        glBindVertexArray(vao)
+        glBindVertexArray(vao_point)
         glDrawArrays(GL_POINTS, 0, 1)
         glBindVertexArray(0)
 
