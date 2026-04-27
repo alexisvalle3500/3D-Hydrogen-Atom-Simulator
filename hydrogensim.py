@@ -15,6 +15,56 @@ orbit_dist  = 14
 pan_x = 0.0
 pan_y = 0.0
 
+# basic passthrough vertex shader
+VERTEX_SRC = """
+#version 330 core
+
+layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec3 aColor;
+
+out vec3 vColor;
+
+uniform mat4 uMVP;
+
+void main() {
+    vColor = aColor;
+    gl_Position = uMVP * vec4(aPos, 1.0);
+}
+"""
+
+# basic passthrough fragment shader
+FRAGMENT_SRC = """
+#version 330 core
+
+in  vec3 vColor;
+out vec4 FragColor;
+
+void main() {
+    FragColor = vec4(vColor, 1.0);
+}
+"""
+
+def _compile_shader(src, kind):
+    shader = glCreateShader(kind)
+    glShaderSource(shader, src)
+    glCompileShader(shader)
+    if not glGetShaderiv(shader, GL_COMPILE_STATUS):
+        raise RuntimeError(glGetShaderInfoLog(shader).decode())
+    return shader
+
+def build_program():
+    vs = _compile_shader(VERTEX_SRC,  GL_VERTEX_SHADER)
+    fs = _compile_shader(FRAGMENT_SRC, GL_FRAGMENT_SHADER)
+    prog = glCreateProgram()
+    for s in (vs, fs):
+        glAttachShader(prog, s)
+    glLinkProgram(prog)
+    if not glGetProgramiv(prog, GL_LINK_STATUS):
+        raise RuntimeError(glGetProgramInfoLog(prog).decode())
+    for s in (vs, fs):
+        glDeleteShader(s)
+    return prog
+
 def perspective(fov_deg, aspect, near, far):
     # build a perspective projection matrix from scratch
     f = 1.0 / np.tan(np.radians(fov_deg) / 2)
@@ -73,6 +123,13 @@ def main():
     glEnable(GL_BLEND)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
 
+    # compile shaders
+    prog = build_program()
+    u_mvp = glGetUniformLocation(prog, "uMVP")
+
+    # build projection matrix
+    proj = perspective(60.0, WIDTH / HEIGHT, 0.01, 1000.0)
+
     # track time between frames
     prev = time.time()
 
@@ -84,6 +141,12 @@ def main():
         # clear to dark blue-black background
         glClearColor(0.03, 0.03, 0.07, 1)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
+
+        mv  = look_at_modelview()
+        mvp = proj @ mv
+
+        glUseProgram(prog)
+        glUniformMatrix4fv(u_mvp, 1, GL_FALSE, mvp.T.flatten())
 
         glfw.swap_buffers(window)
         glfw.poll_events()
