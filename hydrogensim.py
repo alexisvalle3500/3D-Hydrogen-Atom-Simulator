@@ -116,7 +116,7 @@ def mouse_button_callback(window, button, action, mods):
         mouse_right = action == glfw.PRESS
 
 def cursor_pos_callback(window, x, y):
-    global orbit_yaw, orbit_pitch, last_mouse_x, last_mouse_y
+    global orbit_yaw, orbit_pitch, pan_x, pan_y, last_mouse_x, last_mouse_y
     dx = x - last_mouse_x
     dy = y - last_mouse_y
     last_mouse_x, last_mouse_y = x, y
@@ -124,12 +124,14 @@ def cursor_pos_callback(window, x, y):
         orbit_yaw   += dx * 0.4
         orbit_pitch += dy * 0.4
         orbit_pitch  = max(-89, min(89, orbit_pitch))
+    if mouse_right:
+        # pan speed scales with zoom distance
+        pan_x += dx * 0.003 * orbit_dist
+        pan_y -= dy * 0.003 * orbit_dist
 
 def scroll_callback(window, xoff, yoff):
     global orbit_dist
-    # zoom in and out with scroll wheel
     orbit_dist *= (1.0 - yoff * 0.08)
-    # clamp so we cant zoom too close or too far
     orbit_dist  = max(0.5, min(50, orbit_dist))
 
 def create_grid(size=5, step=1):
