@@ -7,6 +7,14 @@ import time
 # window dimensions
 WIDTH, HEIGHT = 1440, 1080
 
+# physical constants in scaled units
+A0   = 1.0
+HBAR = 1.0
+ME   = 1.0
+
+# quantum state
+quantum = {"N": 4, "L": 2, "M": 0}
+
 # camera navigation state
 orbit_yaw   = 0.0
 orbit_pitch = 0.0
@@ -125,7 +133,6 @@ def cursor_pos_callback(window, x, y):
         orbit_pitch += dy * 0.4
         orbit_pitch  = max(-89, min(89, orbit_pitch))
     if mouse_right:
-        # pan speed scales with zoom distance
         pan_x += dx * 0.003 * orbit_dist
         pan_y -= dy * 0.003 * orbit_dist
 
@@ -173,7 +180,6 @@ def main():
     window = glfw.create_window(WIDTH, HEIGHT, "hydrogen atom simulator", None, None)
     glfw.make_context_current(window)
 
-    # register mouse callbacks
     glfw.set_mouse_button_callback(window, mouse_button_callback)
     glfw.set_cursor_pos_callback(window, cursor_pos_callback)
     glfw.set_scroll_callback(window, scroll_callback)
