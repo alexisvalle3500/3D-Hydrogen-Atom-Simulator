@@ -123,8 +123,14 @@ def cursor_pos_callback(window, x, y):
     if mouse_left:
         orbit_yaw   += dx * 0.4
         orbit_pitch += dy * 0.4
-        # clamp pitch so camera doesnt flip over
         orbit_pitch  = max(-89, min(89, orbit_pitch))
+
+def scroll_callback(window, xoff, yoff):
+    global orbit_dist
+    # zoom in and out with scroll wheel
+    orbit_dist *= (1.0 - yoff * 0.08)
+    # clamp so we cant zoom too close or too far
+    orbit_dist  = max(0.5, min(50, orbit_dist))
 
 def create_grid(size=5, step=1):
     lines = []
@@ -168,6 +174,7 @@ def main():
     # register mouse callbacks
     glfw.set_mouse_button_callback(window, mouse_button_callback)
     glfw.set_cursor_pos_callback(window, cursor_pos_callback)
+    glfw.set_scroll_callback(window, scroll_callback)
 
     glEnable(GL_DEPTH_TEST)
     glEnable(GL_BLEND)
