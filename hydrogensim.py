@@ -115,6 +115,17 @@ def mouse_button_callback(window, button, action, mods):
     if button == glfw.MOUSE_BUTTON_RIGHT:
         mouse_right = action == glfw.PRESS
 
+def cursor_pos_callback(window, x, y):
+    global orbit_yaw, orbit_pitch, last_mouse_x, last_mouse_y
+    dx = x - last_mouse_x
+    dy = y - last_mouse_y
+    last_mouse_x, last_mouse_y = x, y
+    if mouse_left:
+        orbit_yaw   += dx * 0.4
+        orbit_pitch += dy * 0.4
+        # clamp pitch so camera doesnt flip over
+        orbit_pitch  = max(-89, min(89, orbit_pitch))
+
 def create_grid(size=5, step=1):
     lines = []
     for i in range(-size, size + 1):
@@ -154,8 +165,9 @@ def main():
     window = glfw.create_window(WIDTH, HEIGHT, "hydrogen atom simulator", None, None)
     glfw.make_context_current(window)
 
-    # register mouse button callback
+    # register mouse callbacks
     glfw.set_mouse_button_callback(window, mouse_button_callback)
+    glfw.set_cursor_pos_callback(window, cursor_pos_callback)
 
     glEnable(GL_DEPTH_TEST)
     glEnable(GL_BLEND)
